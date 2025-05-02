@@ -224,18 +224,31 @@ PROCESS {
         # Add step summary
         $filePath = "test-results/test-results.md"
         if (Test-Path $filePath) {
-            $summary = Get-Content $filePath -Raw
             $maxSize = 1024KB
             $truncationMsg = "`n`n**⚠ TRUNCATED: Output exceeded GitHub's 1024 KB limit.**"
-
-            if ([System.Text.Encoding]::UTF8.GetByteCount($summary) -gt $maxSize) {
-                while ([System.Text.Encoding]::UTF8.GetByteCount($summary + $truncationMsg) -gt $maxSize) {
-                    $summary = $summary.Substring(0, $summary.Length - 100)
-                }
-                $summary += $truncationMsg
+        
+            # Check file size
+            $fileSize = (Get-Item $filePath).Length
+            if ($fileSize -gt $maxSize) {
+                Write-Host "File size exceeds 1MB. Truncating the file."
+        
+                # Read the file content
+                $content = Get-Content $filePath -Raw
+        
+                # Calculate the maximum content size to fit within the limit
+                $maxContentSize = $maxSize - ($truncationMsg.Length * [System.Text.Encoding]::UTF8.GetByteCount("a")) - 4KB
+        
+                # Truncate the content
+                $truncatedContent = $content.Substring(0, $maxContentSize / [System.Text.Encoding]::UTF8.GetByteCount("a"))
+        
+                # Write the truncated content and truncation message to the new file
+                $truncatedContent | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding UTF8 -Append
+                Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value $truncationMsg
+        
+            } else {
+                Write-Host "File size is within the limit. No truncation needed."
+                Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value $(Get-Content $filePath)
             }
-
-            Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value $summary
         } else {
             Write-Host "File not found: $filePath"
         }
