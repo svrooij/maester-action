@@ -124,17 +124,13 @@ PROCESS {
         Write-Host 'Teams tests will be skipped.'
     }
 
-    # Delete Microsoft.Graph.Authentication 2.9.1 (tmp fix for issue #606)
-    Write-Host 'Delete module version 2.9.1 of Microsoft.Graph.Authentication'
-    rm -r /home/runner/.local/share/powershell/Modules/Microsoft.Graph.Authentication/2.9.1
-
     # Configure test results
     $PesterConfiguration = New-PesterConfiguration
     $PesterConfiguration.Output.Verbosity = $PesterVerbosity
     Write-Host "Pester verbosity level set to: $($PesterConfiguration.Output.Verbosity.Value)"
 
     $MaesterParameters = @{
-        Path                 = $Path
+        Path                 = (!$Path ? $null : $Path) ?? $env:GITHUB_WORKSPACE
         PesterConfiguration  = $PesterConfiguration
         OutputFolder         = 'test-results'
         OutputFolderFileName = 'test-results'
