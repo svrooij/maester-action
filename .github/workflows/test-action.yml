@@ -47,6 +47,7 @@ jobs:
           include_private_tests: false
           include_exchange: false
           include_teams: false
+          step_summary: false
           maester_version: latest
           public_tests_ref: main
           disable_telemetry: true
