@@ -48,6 +48,7 @@ jobs:
           include_exchange: false
           include_teams: false
           step_summary: false
+          artifact_upload: true
           maester_version: latest
           public_tests_ref: main
           disable_telemetry: true
