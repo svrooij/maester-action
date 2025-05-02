@@ -29,6 +29,7 @@ jobs:
             echo "secret_missing=true" >> "$GITHUB_OUTPUT"
           fi
       
+      # It seems you need to checkout the code before you can use an action from the same repo
       - name: 🧑‍💻 Checkout code
         if: ${{ steps.preconditions.outputs.secret_missing != 'true' }}
         uses: actions/checkout@v4
