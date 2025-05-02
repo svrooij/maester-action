@@ -209,7 +209,9 @@ PROCESS {
 
     try {
         # Run Maester tests
+        Write-Host "Start test execution $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
         $results = Invoke-Maester @MaesterParameters
+        Write-Host "Maester tests executed $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
     } catch {
         Write-Error "Failed to run Maester tests. Please check the parameters. $($_.Exception.Message) at $($_.InvocationInfo.Line) in $($_.InvocationInfo.ScriptName)"
         Write-Host "::error file=$($_.InvocationInfo.ScriptName),line=$($_.InvocationInfo.Line),title=Maester exception::Failed to run Maester tests. Please check the parameters."
@@ -218,6 +220,7 @@ PROCESS {
     
 
     if ($GitHubStepSummary) {
+        Write-Host "Adding test results to GitHub step summary"
         # Add step summary
         $filePath = "test-results/test-results.md"
         if (Test-Path $filePath) {
