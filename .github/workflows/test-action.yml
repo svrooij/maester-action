@@ -28,7 +28,13 @@ jobs:
             echo "::error title=Missing secret::AZURE_TENANT_ID is not set."
             echo "secret_missing=true" >> "$GITHUB_OUTPUT"
           fi
-        
+      
+      - name: 🧑‍💻 Checkout code
+        if: ${{ steps.preconditions.outputs.secret_missing != 'true' }}
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+
       - name: ✅ Run Maester
         if: ${{ steps.preconditions.outputs.secret_missing != 'true' }}
         uses: ./ # meaning run the action from current repo
