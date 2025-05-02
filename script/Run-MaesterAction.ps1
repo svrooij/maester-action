@@ -243,9 +243,11 @@ PROCESS {
 
     # Write output variable
     $testResultsFile = "test-results/test-results.json"
-    if (Test-Path $testResultsFile -and $null -ne $env:GITHUB_OUTPUT) {
+    $fullTestResultsFile = Resolve-Path -Path $testResultsFile -Relative -ErrorAction SilentlyContinue
+    Write-Host "Test results file: $fullTestResultsFile"
+    if (Test-Path $fullTestResultsFile -and $env:GITHUB_OUTPUT) {
         Write-Host "Writing test result location to output variable"
-        Add-Content -Path $env:GITHUB_OUTPUT -Value "results_json=$(Get-Item $testResultsFile | Select-Object -ExpandProperty FullName)"
+        Add-Content -Path $env:GITHUB_OUTPUT -Value "results_json=$fullTestResultsFile"
     }
 
 
