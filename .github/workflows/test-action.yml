@@ -47,6 +47,6 @@ jobs:
           include_private_tests: false
           include_exchange: false
           include_teams: false
-          maester_version: 10.0.72-preview
+          maester_version: 1.0.72-preview
           public_tests_ref: main
           disable_telemetry: true

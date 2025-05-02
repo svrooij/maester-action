@@ -56,6 +56,29 @@ BEGIN {
     Write-Host 'Starting Github Action Maester tests...'
     Write-Host "Tenant Id: $TenantId"
     Write-Host "Client Id: $ClientId"
+
+
+    Write-Host "Requested Maester version: $MaesterVersion"
+
+    # Install Maester
+    if ($MaesterVersion -eq "latest" -or $MaesterVersion -eq "") {
+        Install-Module Maester -Force
+    } elseif ($MaesterVersion -eq "preview") {
+        Install-Module Maester -AllowPrerelease -Force
+    } else { # it is not empty and not latest or preview
+        try {
+            Install-Module Maester -RequiredVersion $MaesterVersion -AllowPrerelease -Force
+        } catch {
+            Write-Error "Failed to install Maester version $MaesterVersion. Please check the version number."
+            Write-Error $_.Exception.Message
+            Write-Host "::error ::Failed to install Maester version $MaesterVersion. Please check the version number."
+            exit 1
+        }
+    }
+    # Get installed version of Maester
+    $maesterVersion = Get-Module Maester | Select-Object -ExpandProperty Version
+    Write-Host "Installed Maester version: $maesterVersion"
+
     # if command Get-MtAccessTokenUsingCli is not found, import the file with dot-sourcing
     if (-not (Get-Command Get-MtAccessTokenUsingCli -ErrorAction SilentlyContinue)) {
         $scriptPath = Split-Path -Parent $MyInvocation.MyCommand.Path
@@ -69,18 +92,6 @@ BEGIN {
             return
         }
     }
-
-    # Install Maester
-    if ($MaesterVersion -eq "latest" -or $MaesterVersion -eq "") {
-        Install-Module Maester -Force
-    } elseif ($MaesterVersion -eq "preview") {
-        Install-Module Maester -AllowPrerelease -Force
-    } else { # it is not empty and not latest or preview
-        Install-Module Maester -RequiredVersion $MaesterVersion -AllowPrerelease -Force
-    }
-    # Get installed version of Maester
-    $maesterVersion = Get-Module Maester | Select-Object -ExpandProperty Version
-    Write-Host "Installed Maester version: $maesterVersion"
 }
 PROCESS {
     $graphToken = Get-MtAccessTokenUsingCli -ResourceUrl 'https://graph.microsoft.com' -AsSecureString
