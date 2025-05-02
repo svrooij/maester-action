@@ -39,6 +39,9 @@ param (
     [Parameter(Mandatory = $false, HelpMessage = 'Disable telemetry')]
     [bool]$DisableTelemetry = $false,
 
+    [Parameter(Mandatory = $false, HelpMessage = 'Debug run')]
+    [bool]$IsDebug = $false,
+
     [Parameter(Mandatory = $false, HelpMessage = 'Add test results to GitHub step summary')]
     [bool]$GitHubStepSummary = $false,
 
@@ -92,6 +95,22 @@ BEGIN {
             return
         }
     }
+
+    # Check if $Path is set and if it is a valid path
+    # if not replace it with the current directory
+    if (-not [string]::IsNullOrWhiteSpace($Path)) {
+        if (-not (Test-Path $Path)) {
+            Write-Host "The provided path does not exist: $Path. Using current directory."
+            $Path = Get-Location
+            exit 1
+        } else {
+            Write-Host "Using provided path: $Path"
+        }
+    } else {
+        $Path = Get-Location
+        Write-Host "No path provided. Using current directory $Path."
+        
+    }
 }
 PROCESS {
     $graphToken = Get-MtAccessTokenUsingCli -ResourceUrl 'https://graph.microsoft.com' -AsSecureString
@@ -130,7 +149,7 @@ PROCESS {
     Write-Host "Pester verbosity level set to: $($PesterConfiguration.Output.Verbosity.Value)"
 
     $MaesterParameters = @{
-        Path                 = (!$Path ? $null : $Path) ?? $env:GITHUB_WORKSPACE
+        Path                 = $Path
         PesterConfiguration  = $PesterConfiguration
         OutputFolder         = 'test-results'
         OutputFolderFileName = 'test-results'
@@ -181,6 +200,10 @@ PROCESS {
         $MaesterParameters.Add( 'TeamChannelWebhookUri', $TeamsWebhookUri )
         Write-Host "::add-mask::$TeamsWebhookUri"
         Write-Host "Sending test results to Teams Webhook Uri: $TeamsWebhookUri"
+    }
+
+    if ($IsDebug) {
+        Write-Host "Debug mode is enabled. Parameters: $($MaesterParameters | Out-String)"
     }
 
     # Run Maester tests

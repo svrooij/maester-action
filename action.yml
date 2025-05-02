@@ -157,6 +157,7 @@ runs:
           -ExcludeTags '${{ inputs.exclude_tags }}' `
           -DisableTelemetry ('${{ inputs.disable_telemetry}}' -eq 'true') `
           -PesterVerbosity '${{ inputs.pester_verbosity }}' `
+          -IsDebug ('${{runner.debug}}' -eq 'true') `
           -GitHubStepSummary ('${{ inputs.step_summary }}' -eq 'true') `
           -MailRecipients '${{ inputs.mail_recipients }}' `
           -MailUser '${{ inputs.mail_userid }}' `
