@@ -13,8 +13,8 @@ permissions:
   checks: write
 
 jobs:
-  test:
-    name: Maester public tests 🔥
+  test-latest:
+    name: Maester public tests (latest) 🔥
     runs-on: ubuntu-latest
 
     steps:

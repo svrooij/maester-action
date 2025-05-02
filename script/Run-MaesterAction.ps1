@@ -64,13 +64,14 @@ BEGIN {
     Write-Host "Requested Maester version: $MaesterVersion"
 
     # Install Maester
+    $installedVersion = $null
     if ($MaesterVersion -eq "latest" -or $MaesterVersion -eq "") {
-        Install-Module Maester -Force
+        $installedVersion = Install-Module Maester -Force
     } elseif ($MaesterVersion -eq "preview") {
-        Install-Module Maester -AllowPrerelease -Force
+        $installedVersion = Install-Module Maester -AllowPrerelease -Force
     } else { # it is not empty and not latest or preview
         try {
-            Install-Module Maester -RequiredVersion $MaesterVersion -AllowPrerelease -Force
+            $installedVersion = Install-Module Maester -RequiredVersion $MaesterVersion -AllowPrerelease -Force
         } catch {
             Write-Error "Failed to install Maester version $MaesterVersion. Please check the version number."
             Write-Error $_.Exception.Message
@@ -79,7 +80,7 @@ BEGIN {
         }
     }
     # Get installed version of Maester
-    $maesterVersion = Get-Module Maester | Select-Object -ExpandProperty Version
+    $maesterVersion = $installedVersion | Select-Object -ExpandProperty Version
     Write-Host "Installed Maester version: $maesterVersion"
 
     # if command Get-MtAccessTokenUsingCli is not found, import the file with dot-sourcing
@@ -206,8 +207,15 @@ PROCESS {
         Write-Host "Debug mode is enabled. Parameters: $($MaesterParameters | Out-String)"
     }
 
-    # Run Maester tests
-    $results = Invoke-Maester @MaesterParameters
+    try {
+        # Run Maester tests
+        $results = Invoke-Maester @MaesterParameters
+    } catch {
+        Write-Error "Failed to run Maester tests. Please check the parameters. $($_.Exception.Message) at $($_.InvocationInfo.Line) in $($_.InvocationInfo.ScriptName)"
+        Write-Host "::error file=$($_.InvocationInfo.ScriptName),line=$($_.InvocationInfo.Line),title=Maester exception::Failed to run Maester tests. Please check the parameters."
+        exit $LASTEXITCODE
+    }
+    
 
     if ($GitHubStepSummary) {
         # Add step summary
