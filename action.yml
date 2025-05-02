@@ -108,7 +108,7 @@ runs:
       run: echo "NOW=$(date +'%Y-%m-%d-T%H%M%S')" >> $GITHUB_ENV
     
     - name: ❌ Log error message
-      if: ${{ inputs.include_public_tests == 'false' && inputs.include_private_tests == 'false' }}
+      if: ${{ inputs.include_public_tests != 'true' && inputs.include_private_tests != 'true' }}
       run: |
         echo "::error title=No tests to run::Please set 'include_public_tests' or 'include_private_tests' to 'true'."
         exit 1
@@ -157,7 +157,7 @@ runs:
           -ExcludeTags '${{ inputs.exclude_tags }}' `
           -DisableTelemetry ('${{ inputs.disable_telemetry}}' -eq 'true') `
           -PesterVerbosity '${{ inputs.pester_verbosity }}' `
-          -IsDebug ('${{runner.debug}}' -eq 'true') `
+          -IsDebug ('${{runner.debug}}' -eq '1') `
           -GitHubStepSummary ('${{ inputs.step_summary }}' -eq 'true') `
           -MailRecipients '${{ inputs.mail_recipients }}' `
           -MailUser '${{ inputs.mail_userid }}' `
