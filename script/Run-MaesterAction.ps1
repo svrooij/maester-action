@@ -243,11 +243,16 @@ PROCESS {
 
     # Write output variable
     $testResultsFile = "test-results/test-results.json"
-    $fullTestResultsFile = Resolve-Path -Path $testResultsFile -Relative -ErrorAction SilentlyContinue
+    $fullTestResultsFile = Resolve-Path -Path $testResultsFile -ErrorAction SilentlyContinue
     Write-Host "Test results file: $fullTestResultsFile"
-    if (Test-Path $fullTestResultsFile -and $env:GITHUB_OUTPUT) {
-        Write-Host "Writing test result location to output variable"
-        Add-Content -Path $env:GITHUB_OUTPUT -Value "results_json=$fullTestResultsFile"
+    if (Test-Path $fullTestResultsFile) {
+        try {
+            Write-Host "Writing test result location to output variable"
+            Add-Content -Path $env:GITHUB_OUTPUT -Value "results_json=$fullTestResultsFile"
+        } catch {
+            Write-Error "Failed to write test result location to output variable. $($_.Exception.Message) at $($_.InvocationInfo.Line) in $($_.InvocationInfo.ScriptName)"
+            Write-Host "::error file=$($_.InvocationInfo.ScriptName),line=$($_.InvocationInfo.Line),title=Maester exception::Failed to write test result location to output variable."
+        }
     }
 
 
