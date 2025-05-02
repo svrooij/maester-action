@@ -14,6 +14,7 @@ permissions:
 
 jobs:
   test:
+    name: Maester public tests 🔥
     runs-on: ubuntu-latest
 
     steps:
@@ -30,7 +31,7 @@ jobs:
           fi
       
       # It seems you need to checkout the code before you can use an action from the same repo
-      - name: 🧑‍💻 Checkout code
+      - name: 🧑‍💻 Load action
         if: ${{ steps.preconditions.outputs.secret_missing != 'true' }}
         uses: actions/checkout@v4
         with:

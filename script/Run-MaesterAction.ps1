@@ -71,15 +71,16 @@ BEGIN {
     }
 
     # Install Maester
-    if ($MaesterVersion -eq "latest") {
+    if ($MaesterVersion -eq "latest" -or $MaesterVersion -eq "") {
         Install-Module Maester -Force
     } elseif ($MaesterVersion -eq "preview") {
         Install-Module Maester -AllowPrerelease -Force
-    } elseif ($MaesterVersion -ne "") {
-        Install-Module Maester -RequiredVersion $MaesterVersion -Force
-    } else {
-        Install-Module Maester -Force
+    } else { # it is not empty and not latest or preview
+        Install-Module Maester -RequiredVersion $MaesterVersion -AllowPrerelease -Force
     }
+    # Get installed version of Maester
+    $maesterVersion = Get-Module Maester | Select-Object -ExpandProperty Version
+    Write-Host "Installed Maester version: $maesterVersion"
 }
 PROCESS {
     $graphToken = Get-MtAccessTokenUsingCli -ResourceUrl 'https://graph.microsoft.com' -AsSecureString
