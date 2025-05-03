@@ -64,7 +64,7 @@ jobs:
           echo "Skipped tests: ${{ steps.maester.outputs.tests_skipped }}"
 
   test-preview:
-    name: Maester public tests (1.0.74-preview) 🔥
+    name: Maester public tests (1.0.70-preview) 🔥
     runs-on: ubuntu-latest
 
     steps:
@@ -100,7 +100,7 @@ jobs:
           include_teams: false
           step_summary: true
           artifact_upload: true
-          maester_version: 1.0.74-preview
+          maester_version: 1.0.70-preview
           public_tests_ref: main
           disable_telemetry: true
       
