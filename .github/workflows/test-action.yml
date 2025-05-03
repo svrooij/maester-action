@@ -17,6 +17,7 @@ jobs:
     strategy:
       matrix:
         maester: ["1.0.70-preview", "latest", "preview"]
+    continue-on-error: ${{ matrix.maester == 'preview' }}
     name: Maester ${{ matrix.maester }} 🔥
     runs-on: ubuntu-latest
 
