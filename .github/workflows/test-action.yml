@@ -38,6 +38,7 @@ jobs:
           ref: ${{ github.ref }}
 
       - name: ✅ Run Maester
+        id: maester
         if: ${{ steps.preconditions.outputs.secret_missing != 'true' }}
         uses: ./ # meaning run the action from current repo
         with:
@@ -52,3 +53,12 @@ jobs:
           maester_version: latest
           public_tests_ref: main
           disable_telemetry: true
+      
+      - name: 📃 Output results
+        if: ${{ steps.preconditions.outputs.secret_missing != 'true' }}
+        run: |
+          echo "The result of the test run is: ${{ steps.maester.outputs.result }}"
+          echo "Total tests: ${{ steps.maester.outputs.tests_total }}"
+          echo "Passed tests: ${{ steps.maester.outputs.tests_passed }}"
+          echo "Failed tests: ${{ steps.maester.outputs.tests_failed }}"
+          echo "Skipped tests: ${{ steps.maester.outputs.tests_skipped }}"

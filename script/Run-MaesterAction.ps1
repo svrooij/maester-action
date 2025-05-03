@@ -262,8 +262,14 @@ PROCESS {
         try {
             Write-Host "Writing test result location to output variable"
             Add-Content -Path $env:GITHUB_OUTPUT -Value "results_json=$fullTestResultsFile"
+            Add-Content -Path $env:GITHUB_OUTPUT -Value "tests_total=$($results.TotalCount)"
+            Add-Content -Path $env:GITHUB_OUTPUT -Value "tests_failed=$($results.FailedCount)"
+            Add-Content -Path $env:GITHUB_OUTPUT -Value "tests_passed=$($results.PassedCount)"
+            Add-Content -Path $env:GITHUB_OUTPUT -Value "tests_skipped=$($results.SkippedCount)"
+            Add-Content -Path $env:GITHUB_OUTPUT -Value "result=$($results.Result)"
+
         } catch {
-            Write-Error "Failed to write test result location to output variable. $($_.Exception.Message) at $($_.InvocationInfo.Line) in $($_.InvocationInfo.ScriptName)"
+            Write-Host "Failed to write test result location to output variable. $($_.Exception.Message) at $($_.InvocationInfo.Line) in $($_.InvocationInfo.ScriptName)"
             Write-Host "::error file=$($_.InvocationInfo.ScriptName),line=$($_.InvocationInfo.Line),title=Maester exception::Failed to write test result location to output variable."
         }
     }
@@ -272,4 +278,6 @@ PROCESS {
 }
 END {
     Write-Host 'Maester tests completed!'
+    exit 0
+    return
 }

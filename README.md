@@ -40,9 +40,15 @@ Monitor your Microsoft 365 tenant's security configuration using **Maester**, th
 
 ## 📤 Outputs
 
-| Name            | Description                                      |
+| Name             | Description                                      |
 |------------------|--------------------------------------------------|
 | `results_json`   | The file location of the JSON output of the test results. |
+| `tests_total`    | The total number of tests                        |
+| `tests_passed`   | Number of passed tests                           |
+| `tests_failed`   | Number of failed tests                           |
+| `tests_skipped`  | Number of skipped tests                          |
+| `result`         | Result of all the tests `Failed` or `Passed`     |
+
 
 ## 🛠️ Usage
 
@@ -62,6 +68,7 @@ jobs:
 
     steps:
       - name: Run Maester 🧪
+        id: maester
         uses: svrooij/maester-action@main
         with:
           tenant_id: ${{ secrets.AZURE_TENANT_ID }}
@@ -72,4 +79,14 @@ jobs:
           include_teams: true
           maester_version: latest
           disable_telemetry: true
+          step_summary: true
+
+      - name: Write status 📃
+        shell: bash
+        run: |
+          echo "The result of the test run is: ${{ steps.maester.outputs.result }}"
+          echo "Total tests: ${{ steps.maester.outputs.tests_total }}"
+          echo "Passed tests: ${{ steps.maester.outputs.tests_passed }}"
+          echo "Failed tests: ${{ steps.maester.outputs.tests_failed }}"
+          echo "Skipped tests: ${{ steps.maester.outputs.tests_skipped }}"
 ```

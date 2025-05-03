@@ -98,6 +98,21 @@ outputs:
   results_json:
     description: "The file location of the JSON output of the test results."
     value: ${{ steps.maester.outputs.results_json }}
+  tests_total:
+    description: "The total number of tests run."
+    value: ${{ steps.maester.outputs.tests_total }}
+  tests_passed:
+    description: "The number of tests that passed."
+    value: ${{ steps.maester.outputs.tests_passed }}
+  tests_failed:
+    description: "The number of tests that failed."
+    value: ${{ steps.maester.outputs.tests_failed }}
+  tests_skipped:
+    description: "The number of tests that were skipped."
+    value: ${{ steps.maester.outputs.tests_skipped }}
+  result:
+    description: "The result of the test run. 'Failed' if any tests failed, 'Passed' if all tests passed."
+    value: ${{ steps.maester.outputs.result }}
 
 
 runs:
