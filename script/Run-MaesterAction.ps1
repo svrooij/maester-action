@@ -64,14 +64,14 @@ BEGIN {
     Write-Host "Requested Maester version: $MaesterVersion"
 
     # Install Maester
-    $installedVersion = $null
+    
     if ($MaesterVersion -eq "latest" -or $MaesterVersion -eq "") {
-        $installedVersion = Install-Module Maester -Force
+        Install-Module Maester -Force
     } elseif ($MaesterVersion -eq "preview") {
-        $installedVersion = Install-Module Maester -AllowPrerelease -Force
+        Install-Module Maester -AllowPrerelease -Force
     } else { # it is not empty and not latest or preview
         try {
-            $installedVersion = Install-Module Maester -RequiredVersion $MaesterVersion -AllowPrerelease -Force
+            Install-Module Maester -RequiredVersion $MaesterVersion -AllowPrerelease -Force
         } catch {
             Write-Error "Failed to install Maester version $MaesterVersion. Please check the version number."
             Write-Error $_.Exception.Message
@@ -80,6 +80,8 @@ BEGIN {
         }
     }
     # Get installed version of Maester
+    Import-Module Maester -Force -ErrorAction SilentlyContinue
+    $installedVersion = Get-Module Maester -ListAvailable | Where-Object { $_.Name -eq 'Maester' } | Select-Object -First 1
     $maesterVersion = $installedVersion | Select-Object -ExpandProperty Version
     Write-Host "Installed Maester version: $maesterVersion"
 
@@ -103,7 +105,6 @@ BEGIN {
         if (-not (Test-Path $Path)) {
             Write-Host "The provided path does not exist: $Path. Using current directory."
             $Path = Get-Location
-            exit 1
         } else {
             Write-Host "Using provided path: $Path"
         }
