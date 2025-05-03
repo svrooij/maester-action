@@ -185,6 +185,6 @@ runs:
       uses: actions/upload-artifact@v4
       if: always() && steps.maester.outputs.results_json != '' && inputs.artifact_upload == 'true'
       with:
-        name: maester-test-results-${{ env.NOW }}
+        name: maester-test-results-${{inputs.maester_version}}-${{ env.NOW }}
         path: test-results
         include-hidden-files: true
