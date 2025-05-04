@@ -61,7 +61,7 @@ function Get-MtMarkdownReportAction {
             } else {
                 # Test author has not provided details, use default code in script
                 # make sure we do not execute the code in the script block!
-                $cleanedScriptBlock = $test.ScriptBlock.ToString() -replace '%\w+%', ''
+                $cleanedScriptBlock = $test.ScriptBlock.ToString() -replace '%\w+%', '' -replace '\$_', '`$_'
                 $details += "#### Overview`n`n``````ps1`n$cleanedScriptBlock`n```````n`n"
                 if (![string]::IsNullOrEmpty($test.ErrorRecord)) {
                     $details += "#### Reason for failure`n`n$($test.ErrorRecord)`n`n"
