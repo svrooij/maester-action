@@ -16,8 +16,8 @@ jobs:
   test-matix:
     strategy:
       matrix:
-        maester: ["1.0.70-preview", "latest", "preview"]
-    continue-on-error: ${{ matrix.maester == 'preview' }}
+        maester: ["latest", "preview"]
+    #continue-on-error: ${{ matrix.maester == 'preview' }}
     name: "Maester 🔥 ${{ matrix.maester }}"
     runs-on: ubuntu-latest
 
@@ -52,7 +52,7 @@ jobs:
           include_private_tests: false
           include_exchange: false
           include_teams: false
-          step_summary: ${{ matrix.maester == '1.0.70-preview'}}
+          step_summary: ${{ matrix.maester == 'preview'}}
           artifact_upload: true
           maester_version: ${{ matrix.maester }}
           public_tests_ref: main
