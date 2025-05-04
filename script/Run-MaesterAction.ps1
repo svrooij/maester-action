@@ -99,6 +99,12 @@ BEGIN {
         }
     }
 
+    # Load new MarkdownWriter
+    $scriptPath = Split-Path -Parent $MyInvocation.MyCommand.Path
+    $scriptPath = Join-Path -Path $scriptPath -ChildPath 'Get-MtMarkdownReportAction.ps1'
+    . $scriptPath
+
+
     # Check if $Path is set and if it is a valid path
     # if not replace it with the current directory
     if (-not [string]::IsNullOrWhiteSpace($Path)) {
@@ -231,7 +237,15 @@ PROCESS {
         Write-Host "::error file=$($_.InvocationInfo.ScriptName),line=$($_.InvocationInfo.Line),title=Maester exception::Failed to run Maester tests. Please check the parameters."
         exit $LASTEXITCODE
     }
-    
+
+    # Replace test results markdown file with the new one
+    $testResultsFile = "test-results/test-results.md"
+    Move-Item -Path $testResultsFile -Destination "test-results/test-results-orig.md" -Force -ErrorAction SilentlyContinue
+    $scriptPath = Split-Path -Parent $MyInvocation.MyCommand.Path
+    $templateFile = Join-Path -Path $scriptPath -ChildPath 'ReportTemplate.md'
+    $markdownReport = Get-MtMarkdownReportAction $results $templateFile
+    $markdownReport | Out-File -FilePath $testResultsFile -Encoding UTF8 -Force
+    Write-Host "Markdown report generated: $testResultsFile"
 
     if ($GitHubStepSummary) {
         Write-Host "Adding test results to GitHub step summary"
