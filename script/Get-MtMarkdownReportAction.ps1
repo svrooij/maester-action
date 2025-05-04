@@ -25,12 +25,14 @@ function Get-MtMarkdownReportAction {
         Passed = '<img src="https://maester.dev/img/test-result/pill-pass.png" height="25" alt="Passed"/>'
         Failed = '<img src="https://maester.dev/img/test-result/pill-fail.png" height="25" alt="Failed"/>'
         NotRun = '<img src="https://maester.dev/img/test-result/pill-notrun.png" height="25" alt="Not Run"/>'
+        Skipped = '<img src="https://maester.dev/img/test-result/pill-notrun.png" height="25" alt="Not Run"/>'
     }
 
     $StatusIconSm = @{
         Passed = '✅' # '<img src="https://maester.dev/img/test-result/icon-pass.png" alt="Passed icon" height="18" />'
         Failed = '❌' # '<img src="https://maester.dev/img/test-result/icon-fail.png" alt="Failed icon" height="18" />'
         NotRun = '❔' # '<img src="https://maester.dev/img/test-result/icon-notrun.png" alt="Not Run icon" height="18" />'
+        Skipped = '🚫' # '<img src="https://maester.dev/img/test-result/icon-notrun.png" alt="Not Run icon" height="18" />'
     }
 
     function GetTestSummary() {
