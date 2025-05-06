@@ -62,6 +62,13 @@ on:
     branches:
       - main
 
+  schedule:
+    # Daily at 7:30 UTC, change accordingly
+    - cron: "30 7 * * *"
+
+  # Allows to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -69,6 +76,7 @@ jobs:
     steps:
       - name: Run Maester 🧪
         id: maester
+        # Set the action version to a specific version, to keep using that exact version.
         uses: svrooij/maester-action@main
         with:
           tenant_id: ${{ secrets.AZURE_TENANT_ID }}
@@ -77,7 +85,9 @@ jobs:
           include_private_tests: false
           include_exchange: false
           include_teams: true
-          maester_version: latest
+          # Set a specific version of the powershell module here.
+          # check out https://www.powershellgallery.com/packages/Maester/
+          maester_version: preview
           disable_telemetry: true
           step_summary: true
 
