@@ -229,14 +229,11 @@ PROCESS {
 
     $maesterCommand = Get-Command -Name Invoke-Maester
     # Find parameters that are not in the command
-    $missingParameters = $maesterCommand.Parameters.Keys | Where-Object { $_ -notin $MaesterParameters.Keys }
+    $missingParameters = $MaesterParameters.Keys | Where-Object { $_ -notin  $maesterCommand.Parameters.Keys }
     if ($missingParameters) {
-        Write-Host "The following parameters are not valid for Invoke-Maester: $missingParameters version: $($maesterCommand.Version)"
+        Write-Host "❌ Maester version: $($maesterCommand.Version) does not support $missingParameters parameters. Please check version compatibility."
+        $MaesterParameters.Remove($missingParameters)
     }
-
-    # Filter parameters that are not in the command
-    $MaesterParameters = $MaesterParameters | Where-Object { $_.Key -in $maesterCommand.Parameters.Keys }
-
 
     try {
         # Run Maester tests
@@ -249,6 +246,12 @@ PROCESS {
         exit $LASTEXITCODE
     }
 
+    if ($null -eq $results) {
+        Write-Host "No test results found. Please check the parameters."
+        Write-Host "::error title=No test results::No test results found. Please check the parameters."
+        exit 1
+    }
+    
     # Replace test results markdown file with the new one
     $testResultsFile = "test-results/test-results.md"
     Move-Item -Path $testResultsFile -Destination "test-results/test-results-orig.md" -Force -ErrorAction SilentlyContinue
