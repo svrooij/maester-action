@@ -57,6 +57,7 @@ jobs:
           maester_version: ${{ matrix.maester }}
           public_tests_ref: main
           disable_telemetry: true
+          notification_teams_webhook: https://webhook.site/6349a4fa-9f43-4224-9e37-a3f5117514d6
       
       - name: Output results 📃
         if: ${{ steps.preconditions.outputs.secret_missing != 'true' }}

@@ -227,6 +227,17 @@ PROCESS {
         Write-Host "Debug mode is enabled. Parameters: $($MaesterParameters | Out-String)"
     }
 
+    $maesterCommand = Get-Command -Name Invoke-Maester
+    # Find parameters that are not in the command
+    $missingParameters = $maesterCommand.Parameters.Keys | Where-Object { $_ -notin $MaesterParameters.Keys }
+    if ($missingParameters) {
+        Write-Host "The following parameters are not valid for Invoke-Maester: $missingParameters version: $($maesterCommand.Version)"
+    }
+
+    # Filter parameters that are not in the command
+    $MaesterParameters = $MaesterParameters | Where-Object { $_.Key -in $maesterCommand.Parameters.Keys }
+
+
     try {
         # Run Maester tests
         Write-Host "Start test execution $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
