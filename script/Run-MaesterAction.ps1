@@ -97,7 +97,7 @@ BEGIN {
     # Load new MarkdownWriter
     $markdownReportScript = Join-Path -Path $scriptPath -ChildPath 'Get-MtMarkdownReportAction.ps1'
     # Test if we even need this script since it is included in version 1.0.79 or higher
-    if (Test-Path $markdownReportScript -and $GitHubStepSummary -eq $true -and $installedVersion -lt [version]'1.0.79') {
+    if ((Test-Path $markdownReportScript) -and ($GitHubStepSummary -eq $true) -and ($installedVersion -lt [version]'1.0.79')) {
         Write-Debug "Importing script: $markdownReportScript"
         . $markdownReportScript
     } elseif ($GitHubStepSummary -eq $true) {
