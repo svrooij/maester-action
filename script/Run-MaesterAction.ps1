@@ -123,7 +123,6 @@ BEGIN {
     # Fix Maester configuration file
     $maesterConfigPath = Join-Path -Path $Path -ChildPath 'maester-config.json'
     if (-not (Test-Path $maesterConfigPath)) {
-        Write-Host "Config not found: $maesterConfigPath trying public-tests folder"
         $maesterConfigPathPublic = [IO.Path]::Combine($Path, 'public-tests', 'tests', 'maester-config.json')
         if (Test-Path $maesterConfigPathPublic) {
             Write-Host "📃 Using public-tests config: $maesterConfigPathPublic"
