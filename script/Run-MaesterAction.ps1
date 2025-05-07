@@ -56,15 +56,9 @@ param (
 )
 
 BEGIN {
-    Write-Host 'Starting Github Action Maester tests...'
-    Write-Host "Tenant Id: $TenantId"
-    Write-Host "Client Id: $ClientId"
-
-
-    Write-Host "Requested Maester version: $MaesterVersion"
+    Write-Host "Github Action Maester 🔥 requested module: $MaesterVersion"
 
     # Install Maester
-    
     if ($MaesterVersion -eq "latest" -or $MaesterVersion -eq "") {
         Install-Module Maester -Force
     } elseif ($MaesterVersion -eq "preview") {
@@ -73,36 +67,43 @@ BEGIN {
         try {
             Install-Module Maester -RequiredVersion $MaesterVersion -AllowPrerelease -Force
         } catch {
-            Write-Error "Failed to install Maester version $MaesterVersion. Please check the version number."
+            Write-Error "❌ Failed to install Maester version $MaesterVersion. Please check the version number."
             Write-Error $_.Exception.Message
             Write-Host "::error ::Failed to install Maester version $MaesterVersion. Please check the version number."
             exit 1
         }
     }
+
     # Get installed version of Maester
     Import-Module Maester -Force -ErrorAction SilentlyContinue
-    $installedVersion = Get-Module Maester -ListAvailable | Where-Object { $_.Name -eq 'Maester' } | Select-Object -First 1
-    $maesterVersion = $installedVersion | Select-Object -ExpandProperty Version
-    Write-Host "Installed Maester version: $maesterVersion"
+    $installedModule = Get-Module Maester -ListAvailable | Where-Object { $_.Name -eq 'Maester' } | Select-Object -First 1
+    $installedVersion = $installedModule | Select-Object -ExpandProperty Version
+    Write-Host "📃 Installed Maester version: $installedVersion"
 
     # if command Get-MtAccessTokenUsingCli is not found, import the file with dot-sourcing
+    $scriptPath = Split-Path -Parent $MyInvocation.MyCommand.Path
     if (-not (Get-Command Get-MtAccessTokenUsingCli -ErrorAction SilentlyContinue)) {
-        $scriptPath = Split-Path -Parent $MyInvocation.MyCommand.Path
-        $scriptPath = Join-Path -Path $scriptPath -ChildPath 'Get-MtAccessTokenUsingCli.ps1'
-        if (Test-Path $scriptPath) {
-            Write-Host "Importing script: $scriptPath"
-            . $scriptPath
+        $accessTokenScript = Join-Path -Path $scriptPath -ChildPath 'Get-MtAccessTokenUsingCli.ps1'
+        if (Test-Path $accessTokenScript) {
+            Write-Debug "Importing script: $accessTokenScript"
+            . $accessTokenScript
         } else {
-            Write-Error "Script not found: $scriptPath"
+            Write-Error "Script not found: $accessTokenScript"
             exit 1
             return
         }
     }
 
     # Load new MarkdownWriter
-    $scriptPath = Split-Path -Parent $MyInvocation.MyCommand.Path
-    $scriptPath = Join-Path -Path $scriptPath -ChildPath 'Get-MtMarkdownReportAction.ps1'
-    . $scriptPath
+    $markdownReportScript = Join-Path -Path $scriptPath -ChildPath 'Get-MtMarkdownReportAction.ps1'
+    # Test if we even need this script since it is included in version 1.0.79 or higher
+    if (Test-Path $markdownReportScript -and $GitHubStepSummary -eq $true -and $installedVersion -lt [version]'1.0.79') {
+        Write-Debug "Importing script: $markdownReportScript"
+        . $markdownReportScript
+    } elseif ($GitHubStepSummary -eq $true) {
+        Write-Host "❔ Better markdown report not found: $markdownReportScript"
+    }
+    
 
 
     # Check if $Path is set and if it is a valid path
@@ -122,14 +123,17 @@ BEGIN {
     # Fix Maester configuration file
     $maesterConfigPath = Join-Path -Path $Path -ChildPath 'maester-config.json'
     if (-not (Test-Path $maesterConfigPath)) {
-        $maesterConfigPathPublic = [IO.Path]::Combine($Path, 'public-tests', 'tests', 'maester-config.json')
         Write-Host "Config not found: $maesterConfigPath trying public-tests folder"
-        
+        $maesterConfigPathPublic = [IO.Path]::Combine($Path, 'public-tests', 'tests', 'maester-config.json')
         if (Test-Path $maesterConfigPathPublic) {
             Write-Host "Using public-tests config: $maesterConfigPathPublic"
             Copy-Item -Path $maesterConfigPathPublic -Destination $maesterConfigPath -Force
         } else {
             Write-Host "Configuration $maesterConfigPathPublic not found will result in failure with version '1.0.71-preview' or later"
+            if ($installedVersion -ge [version]'1.0.71-preview') {
+                Write-Host "::error file=maester-config.json,title=Maester config not found::Configuration $maesterConfigPathPublic not found will result in failure with version '1.0.71-preview' or later"
+                exit 1
+            }
         }
     }
 }
@@ -227,8 +231,10 @@ PROCESS {
         Write-Host "Debug mode is enabled. Parameters: $($MaesterParameters | Out-String)"
     }
 
+    
+    # Check all parameters against the installed Maester version and remove the ones that are not supported
+    # A warning to show which parameters are not supported seems better then not executing any tests at all
     $maesterCommand = Get-Command -Name Invoke-Maester
-    # Find parameters that are not in the command
     $missingParameters = $MaesterParameters.Keys | Where-Object { $_ -notin  $maesterCommand.Parameters.Keys }
     if ($missingParameters) {
         Write-Host "❌ Maester version: $($maesterCommand.Version) does not support $missingParameters parameters. Please check version compatibility."
@@ -237,13 +243,14 @@ PROCESS {
 
     try {
         # Run Maester tests
-        Write-Host "Start test execution $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
+        Write-Host "🕑 Start test execution $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
         $results = Invoke-Maester @MaesterParameters
-        Write-Host "Maester tests executed $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
+        Write-Host "🕑 Maester tests executed $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
     } catch {
         Write-Error "Failed to run Maester tests. Please check the parameters. $($_.Exception.Message) at $($_.InvocationInfo.Line) in $($_.InvocationInfo.ScriptName)"
         Write-Host "::error file=$($_.InvocationInfo.ScriptName),line=$($_.InvocationInfo.Line),title=Maester exception::Failed to run Maester tests. Please check the parameters."
         exit $LASTEXITCODE
+        return
     }
 
     if ($null -eq $results) {
@@ -253,13 +260,17 @@ PROCESS {
     }
     
     # Replace test results markdown file with the new one
-    $testResultsFile = "test-results/test-results.md"
-    Move-Item -Path $testResultsFile -Destination "test-results/test-results-orig.md" -Force -ErrorAction SilentlyContinue
-    $scriptPath = Split-Path -Parent $MyInvocation.MyCommand.Path
-    $templateFile = Join-Path -Path $scriptPath -ChildPath 'ReportTemplate.md'
-    $markdownReport = Get-MtMarkdownReportAction $results $templateFile
-    $markdownReport | Out-File -FilePath $testResultsFile -Encoding UTF8 -Force
-    Write-Host "Markdown report generated: $testResultsFile"
+    # Check if the 'Get-MtMarkdownReportAction' function is available, this is an improved version to fix all reports under version 1.0.79-preview
+    if (Get-Command Get-MtMarkdownReportAction -ErrorAction SilentlyContinue) {
+        $testResultsFile = "test-results/test-results.md"
+        Move-Item -Path $testResultsFile -Destination "test-results/test-results-orig.md" -Force -ErrorAction SilentlyContinue
+        $scriptPath = Split-Path -Parent $MyInvocation.MyCommand.Path
+        $templateFile = Join-Path -Path $scriptPath -ChildPath 'ReportTemplate.md'
+        $markdownReport = Get-MtMarkdownReportAction $results $templateFile
+        $markdownReport | Out-File -FilePath $testResultsFile -Encoding UTF8 -Force
+        Write-Host "Markdown report generated: $testResultsFile"
+    }
+
 
     if ($GitHubStepSummary) {
         Write-Host "Adding test results to GitHub step summary"
@@ -319,7 +330,7 @@ PROCESS {
 
 }
 END {
-    Write-Host 'Maester tests completed!'
+    Write-Host '🏁 Maester tests completed!'
     exit 0
     return
 }
