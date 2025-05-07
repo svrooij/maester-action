@@ -18,16 +18,16 @@ body:
     label: What version of the action are you using?
     description: Please provide the version of the action you are using.
     placeholder: v1.0.0 / main / ..
-    validations:
-      required: true
+  validations:
+    required: true
 - type: input
   id: maester_version
   attributes:
     label: What version of Maester are you using?
     description: "Please provide the version of Maester you are using, it is in the logs as: Installed Maester version: 1.0.83"
     placeholder: 1.0.0 / 1.0.83
-    validations:
-      required: true
+  validations:
+    required: true
 - type: input
   id: public_tests_version
   attributes:
@@ -40,5 +40,5 @@ body:
     label: Describe the bug
     description: Please provide a clear and concise description of the bug you encountered.
     placeholder: A clear and concise description of the bug.
-    validations:
-      required: true
+  validations:
+    required: true
