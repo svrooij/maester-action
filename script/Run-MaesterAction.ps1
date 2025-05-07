@@ -97,15 +97,15 @@ BEGIN {
     # Load new MarkdownWriter
     $markdownReportScript = Join-Path -Path $scriptPath -ChildPath 'Get-MtMarkdownReportAction.ps1'
     # Test if we even need this script since it is included in version 1.0.79 or higher
-    if ((Test-Path $markdownReportScript) -and ($GitHubStepSummary -eq $true) -and ($installedVersion -lt [version]'1.0.79')) {
-        Write-Debug "Importing script: $markdownReportScript"
-        . $markdownReportScript
-    } elseif ($GitHubStepSummary -eq $true) {
-        Write-Host "❔ Better markdown report not found: $markdownReportScript"
+    if (($GitHubStepSummary -eq $true) -and ($installedVersion -lt [version]'1.0.79')) {
+        if (Test-Path $markdownReportScript) {
+            Write-Debug "Importing script: $markdownReportScript"
+            . $markdownReportScript
+        } else {
+            Write-Host "❔ Better markdown report not loaded: $markdownReportScript"
+        }   
     }
     
-
-
     # Check if $Path is set and if it is a valid path
     # if not replace it with the current directory
     if (-not [string]::IsNullOrWhiteSpace($Path)) {
@@ -142,6 +142,7 @@ PROCESS {
 
     # Connect to Microsoft Graph with the token as secure string
     Connect-MgGraph -AccessToken $graphToken -NoWelcome
+    Write-Host "✔️ Graph connected"
 
     # Check if we need to connect to Exchange Online
     if ($IncludeExchange) {
@@ -173,7 +174,7 @@ PROCESS {
     # Configure test results
     $PesterConfiguration = New-PesterConfiguration
     $PesterConfiguration.Output.Verbosity = $PesterVerbosity
-    Write-Host "Pester verbosity level set to: $($PesterConfiguration.Output.Verbosity.Value)"
+    Write-Host "📃 Pester verbosity level set to: $($PesterConfiguration.Output.Verbosity.Value)"
 
     $MaesterParameters = @{
         Path                 = $Path
@@ -231,7 +232,7 @@ PROCESS {
     }
 
     if ($IsDebug) {
-        Write-Host "Debug mode is enabled. Parameters: $($MaesterParameters | Out-String)"
+        Write-Debug "Debug mode is enabled. Parameters: $($MaesterParameters | Out-String)"
     }
 
     
