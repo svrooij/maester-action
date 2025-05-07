@@ -24,7 +24,7 @@ body:
   id: maester_version
   attributes:
     label: What version of Maester are you using?
-    description: Please provide the version of Maester you are using, it is in the log `Installed Maester version: 1.0.83`
+    description: "Please provide the version of Maester you are using, it is in the logs as: Installed Maester version: 1.0.83"
     placeholder: 1.0.0 / 1.0.83
     validations:
       required: true
