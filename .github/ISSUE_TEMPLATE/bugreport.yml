@@ -2,7 +2,6 @@ name: Bug Report
 description: Report issues with the Maester Github Action here.
 title: "[BUG] "
 labels: [bug]
-assignees: ''
 body:
 body:
 - type: checkboxes
