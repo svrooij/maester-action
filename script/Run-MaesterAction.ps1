@@ -113,11 +113,11 @@ BEGIN {
             Write-Host "The provided path does not exist: $Path. Using current directory."
             $Path = Get-Location
         } else {
-            Write-Host "Using provided path: $Path"
+            Write-Host "📃 Using provided path: $Path"
         }
     } else {
         $Path = Get-Location
-        Write-Host "No path provided. Using current directory $Path."
+        Write-Host "❔ No path provided. Using current directory $Path."
     }
 
     # Fix Maester configuration file
@@ -126,10 +126,10 @@ BEGIN {
         Write-Host "Config not found: $maesterConfigPath trying public-tests folder"
         $maesterConfigPathPublic = [IO.Path]::Combine($Path, 'public-tests', 'tests', 'maester-config.json')
         if (Test-Path $maesterConfigPathPublic) {
-            Write-Host "Using public-tests config: $maesterConfigPathPublic"
+            Write-Host "📃 Using public-tests config: $maesterConfigPathPublic"
             Copy-Item -Path $maesterConfigPathPublic -Destination $maesterConfigPath -Force
         } else {
-            Write-Host "Configuration $maesterConfigPathPublic not found will result in failure with version '1.0.71-preview' or later"
+            Write-Host "❌ Configuration $maesterConfigPathPublic not found will result in failure with version '1.0.71-preview' or later"
             if ($installedVersion -ge [version]'1.0.71-preview') {
                 Write-Host "::error file=maester-config.json,title=Maester config not found::Configuration $maesterConfigPathPublic not found will result in failure with version '1.0.71-preview' or later"
                 exit 1
@@ -150,8 +150,9 @@ PROCESS {
 
         $outlookToken = Get-MtAccessTokenUsingCli -ResourceUrl 'https://outlook.office365.com'
         Connect-ExchangeOnline -AccessToken $outlookToken -AppId $ClientId -Organization $TenantId -ShowBanner:$false
+        Write-Host "✔️ Exchange Online connected."
     } else {
-        Write-Host 'Exchange Online tests will be skipped.'
+        Write-Host '📃 Exchange Online tests will be skipped.'
     }
 
     # Check if we need to connect to Teams
@@ -164,8 +165,9 @@ PROCESS {
         $regularGraphToken = ConvertFrom-SecureString -SecureString $graphToken -AsPlainText
         $tokens = @($regularGraphToken, $teamsToken)
         Connect-MicrosoftTeams -AccessTokens $tokens -Verbose
+        Write-Host "✔️ Microsoft Teams connected."
     } else {
-        Write-Host 'Teams tests will be skipped.'
+        Write-Host '📃 Teams tests will be skipped.'
     }
 
     # Configure test results
@@ -185,14 +187,14 @@ PROCESS {
     if ( [string]::IsNullOrWhiteSpace($IncludeTags) -eq $false ) {
         $TestTags = $IncludeTags -split ','
         $MaesterParameters.Add( 'Tag', $TestTags )
-        Write-Host "Running tests with tags: $TestTags"
+        Write-Host "📃 Including tests with tags: $TestTags"
     }
 
     # Check if exclude test tags are provided
     if ( [string]::IsNullOrWhiteSpace($ExcludeTags) -eq $false ) {
         $ExcludeTestTags = $ExcludeTags -split ','
         $MaesterParameters.Add( 'ExcludeTag', $ExcludeTestTags )
-        Write-Host "Excluding tests with tags: $ExcludeTestTags"
+        Write-Host "📃 Excluding tests with tags: $ExcludeTestTags"
     }
 
     # Check if mail recipients and mail userid are provided
@@ -203,7 +205,7 @@ PROCESS {
             $Recipients = $MailRecipients -split ','
             $MaesterParameters.Add( 'MailRecipient', $Recipients )
             $MaesterParameters.Add( 'MailTestResultsUri', $TestResultURI )
-            Write-Host "Mail notification will be sent to: $Recipients"
+            Write-Host "📃 Mail notification configured"
         } else {
             Write-Warning 'Mail recipients are not provided. Skipping mail notification.'
         }
@@ -212,19 +214,20 @@ PROCESS {
     if ([string]::IsNullOrWhiteSpace($TeamsChannelId) -eq $false -and [string]::IsNullOrWhiteSpace($TeamsTeamId) -eq $false) {
         $MaesterParameters.Add( 'TeamChannelId', $TeamsChannelId )
         $MaesterParameters.Add( 'TeamId', $TeamsTeamId )
-        Write-Host "Results will be sent to Teams Team Id: $TeamsTeamId"
+        Write-Host "📃 Teams notifications configured on Team ID"
     }
 
     # Check if disable telemetry is provided
     if ($DisableTelemetry ) {
         $MaesterParameters.Add( 'DisableTelemetry', $true )
+        Write-Host "📃 Telemetry disabled 🛑."
     }
 
     # Check if Teams Webhook Uri is provided
     if ($TeamsWebhookUri) {
         $MaesterParameters.Add( 'TeamChannelWebhookUri', $TeamsWebhookUri )
         Write-Host "::add-mask::$TeamsWebhookUri"
-        Write-Host "Sending test results to Teams Webhook Uri: $TeamsWebhookUri"
+        Write-Host "📃 Teams Webhook Uri configured."
     }
 
     if ($IsDebug) {
@@ -268,12 +271,12 @@ PROCESS {
         $templateFile = Join-Path -Path $scriptPath -ChildPath 'ReportTemplate.md'
         $markdownReport = Get-MtMarkdownReportAction $results $templateFile
         $markdownReport | Out-File -FilePath $testResultsFile -Encoding UTF8 -Force
-        Write-Host "Markdown report generated: $testResultsFile"
+        Write-Host "🧪 Alternative markdown report generated: $testResultsFile"
     }
 
 
     if ($GitHubStepSummary) {
-        Write-Host "Adding test results to GitHub step summary"
+        Write-Host "📝 Adding test results to GitHub step summary"
         # Add step summary
         $filePath = "test-results/test-results.md"
         if (Test-Path $filePath) {
@@ -283,7 +286,7 @@ PROCESS {
             # Check file size
             $fileSize = (Get-Item $filePath).Length
             if ($fileSize -gt $maxSize) {
-                Write-Host "File size exceeds 1MB. Truncating the file."
+                Write-Host "❌ Truncating output file to prevent failure."
         
                 # Read the file content
                 $content = Get-Content $filePath -Raw
@@ -299,21 +302,19 @@ PROCESS {
                 Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value $truncationMsg
         
             } else {
-                Write-Host "File size is within the limit. No truncation needed."
                 Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value $(Get-Content $filePath)
             }
         } else {
-            Write-Host "File not found: $filePath"
+            Write-Host "❌ Markdown report not found: $filePath"
         }
     }
 
     # Write output variable
     $testResultsFile = "test-results/test-results.json"
     $fullTestResultsFile = Resolve-Path -Path $testResultsFile -ErrorAction SilentlyContinue
-    Write-Host "Test results file: $fullTestResultsFile"
     if (Test-Path $fullTestResultsFile) {
         try {
-            Write-Host "Writing test result location to output variable"
+            Write-Host "📝 Setting output variables"
             Add-Content -Path $env:GITHUB_OUTPUT -Value "results_json=$fullTestResultsFile"
             Add-Content -Path $env:GITHUB_OUTPUT -Value "tests_total=$($results.TotalCount)"
             Add-Content -Path $env:GITHUB_OUTPUT -Value "tests_failed=$($results.FailedCount)"
@@ -322,7 +323,7 @@ PROCESS {
             Add-Content -Path $env:GITHUB_OUTPUT -Value "result=$($results.Result)"
 
         } catch {
-            Write-Host "Failed to write test result location to output variable. $($_.Exception.Message) at $($_.InvocationInfo.Line) in $($_.InvocationInfo.ScriptName)"
+            Write-Host "❌ Failed to write to output variable. $($_.Exception.Message) at $($_.InvocationInfo.Line) in $($_.InvocationInfo.ScriptName)"
             Write-Host "::error file=$($_.InvocationInfo.ScriptName),line=$($_.InvocationInfo.Line),title=Maester exception::Failed to write test result location to output variable."
         }
     }
